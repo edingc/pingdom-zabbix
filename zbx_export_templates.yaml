@@ -1,0 +1,93 @@
+zabbix_export:
+  version: '7.4'
+  template_groups:
+    - uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    - uuid: 93a14bbfd5c14ea28402ec3300db992f
+      template: 'Pingdom by HTTP'
+      name: 'Pingdom by HTTP'
+      description: |
+        Fetches Pingdom check data via the Pingdom API and sends it to Zabbix using low-level discovery (LLD) along with per-check status and response time items. 
+        
+        Intended to be run externally on a schedule (e.g., cron).
+      vendor:
+        name: 'Cody Eding'
+        version: 7.4-2
+      groups:
+        - name: Templates
+      discovery_rules:
+        - uuid: 536af41872bd49d59e264c1bb8309bbe
+          name: 'Pingdom checks'
+          type: TRAP
+          key: pingdom.checks
+          lifetime: 30d
+          enabled_lifetime_type: DISABLE_NEVER
+          item_prototypes:
+            - uuid: 3c04af04fbc34b83b069a20540ae887a
+              name: 'Pingdom response time: {#NAME}'
+              type: TRAP
+              key: 'pingdom.response_time[{#NAME}]'
+              history: 7d
+              units: ms
+              tags:
+                - tag: application
+                  value: pingdom
+                - tag: component
+                  value: health
+              trigger_prototypes:
+                - uuid: 389c53ae63474170b1682a6b91ac7def
+                  expression: 'last(/Pingdom by HTTP/pingdom.response_time[{#NAME}])>2000'
+                  name: 'Pingdom response time: {#NAME} > 2s'
+                  priority: AVERAGE
+            - uuid: 3f115e94f1504fd092e13d2a6b5d484b
+              name: 'Pingdom status: {#NAME}'
+              type: TRAP
+              key: 'pingdom.status[{#NAME}]'
+              history: 7d
+              valuemap:
+                name: 'Pingdom status values'
+              tags:
+                - tag: application
+                  value: pingdom
+                - tag: component
+                  value: availability
+              trigger_prototypes:
+                - uuid: 3b09bea5fe1146968e2cbeb047842d13
+                  expression: 'last(/Pingdom by HTTP/pingdom.status[{#NAME}])<>1'
+                  name: 'Pingdom status: {#NAME} is not up'
+                  priority: HIGH
+          graph_prototypes:
+            - uuid: 8c69cf7f309d47c491197fa42201319f
+              name: 'Pingdom response time: {#NAME}'
+              graph_items:
+                - color: 1A7C11
+                  item:
+                    host: 'Pingdom by HTTP'
+                    key: 'pingdom.response_time[{#NAME}]'
+            - uuid: c6f3ed588fa44f26a37bde55966af02c
+              name: 'Pingdom status: {#NAME}'
+              graph_items:
+                - color: 1A7C11
+                  item:
+                    host: 'Pingdom by HTTP'
+                    key: 'pingdom.status[{#NAME}]'
+      tags:
+        - tag: class
+          value: cloud
+        - tag: target
+          value: pingdom
+      valuemaps:
+        - uuid: aa618eef7624400bba9c17cc5043418f
+          name: 'Pingdom status values'
+          mappings:
+            - value: '0'
+              newvalue: down
+            - value: '1'
+              newvalue: up
+            - value: '2'
+              newvalue: unconfirmed_down
+            - value: '3'
+              newvalue: unknown
+            - value: '4'
+              newvalue: paused
