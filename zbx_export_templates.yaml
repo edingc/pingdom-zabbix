@@ -31,8 +31,8 @@ zabbix_export:
               history: 7d
               units: ms
               tags:
-                - tag: application
-                  value: pingdom
+                - tag: check
+                  value: '{#NAME}'
                 - tag: component
                   value: health
               trigger_prototypes:
@@ -40,6 +40,9 @@ zabbix_export:
                   expression: 'last(/Pingdom by HTTP/pingdom.response_time[{#NAME}])>2000'
                   name: 'Pingdom response time: {#NAME} > 2s'
                   priority: AVERAGE
+                  tags:
+                    - tag: scope
+                      value: performance
             - uuid: 3f115e94f1504fd092e13d2a6b5d484b
               name: 'Pingdom status: {#NAME}'
               type: TRAP
@@ -48,8 +51,8 @@ zabbix_export:
               valuemap:
                 name: 'Pingdom status values'
               tags:
-                - tag: application
-                  value: pingdom
+                - tag: check
+                  value: '{#NAME}'
                 - tag: component
                   value: availability
               trigger_prototypes:
@@ -57,6 +60,9 @@ zabbix_export:
                   expression: 'last(/Pingdom by HTTP/pingdom.status[{#NAME}])<>1'
                   name: 'Pingdom status: {#NAME} is not up'
                   priority: HIGH
+                  tags:
+                    - tag: scope
+                      value: availability
           graph_prototypes:
             - uuid: 8c69cf7f309d47c491197fa42201319f
               name: 'Pingdom response time: {#NAME}'
